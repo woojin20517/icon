@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>스페이스 바를 눌러 게임 시작 - 탄도 피하기 게임</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            background-color: #000;
+            color: #fff;
+        }
+        #player {
+            position: absolute;
+            width: 50px;
+            height: 50px;
+            background-color: #fff;
+            border-radius: 50%;
+            left: 50%;
+            bottom: 20px;
+            transform: translateX(-50%);
+        }
+        .bullet {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background-color: red;
+            border-radius: 50%;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <div id="player"></div>
+
+    <script>
+        const player = document.getElementById('player');
+        let gameStarted = false;
+        let playerPositionX = window.innerWidth / 2;
+        let playerPositionY = window.innerHeight - parseInt(player.offsetHeight);
+        let isMovingLeft = false;
+        let isMovingRight = false;
+        let isMovingUp = false;
+        let isMovingDown = false;
+
+        function movePlayer() {
+            if (gameStarted) {
+                if (isMovingLeft) {
+                    playerPositionX = Math.max(playerPositionX - 3, 0);
+                }
+                if (isMovingRight) {
+                    playerPositionX = Math.min(playerPositionX + 3, window.innerWidth - parseInt(player.offsetWidth));
+                }
+                if (isMovingUp) {
+                    playerPositionY = Math.max(playerPositionY - 3, 0);
+                }
+                if (isMovingDown) {
+                    playerPositionY = Math.min(playerPositionY + 3, window.innerHeight - parseInt(player.offsetHeight));
+                }
+                player.style.left = playerPositionX + 'px';
+                player.style.bottom = playerPositionY + 'px';
+            }
+        }
+
+        function createBullet() {
+            const bullet = document.createElement('div');
+            bullet.className = 'bullet';
+            document.body.appendChild(bullet);
+
+            const bulletPositionX = Math.random() * window.innerWidth;
+            const bulletPositionY = Math.random() * window.innerHeight;
+            bullet.style.left = bulletPositionX + 'px';
+            bullet.style.top = bulletPositionY + 'px';
+
+            const dx = playerPositionX - bulletPositionX;
+            const dy = playerPositionY - bulletPositionY;
+
+            const angle = Math.atan2(dy, dx);
+            const bulletSpeed = 2;
+
+            function moveBullet() {
+                const bulletTop = parseInt(bullet.style.top);
+                const bulletLeft = parseInt(bullet.style.left);
+
+                const newX = bulletLeft + Math.cos(angle) * bulletSpeed;
+                const newY = bulletTop + Math.sin(angle) * bulletSpeed;
+
+                bullet.style.left = newX + 'px';
+                bullet.style.top = newY + 'px';
+
+                const bulletRight = bulletLeft + parseInt(bullet.offsetWidth);
+                const bulletBottom = bulletTop + parseInt(bullet.offsetHeight);
+
+                const playerTop = parseInt(player.style.bottom) + parseInt(player.offsetHeight);
+                const playerLeft = parseInt(player.style.left);
+                const playerRight = playerLeft + parseInt(player.offsetWidth);
+                const playerBottom = parseInt(player.style.bottom);
+
+                if (
+                    bulletLeft < playerRight &&
+                    bulletRight > playerLeft &&
+                    bulletTop < playerBottom &&
+                    bulletBottom > playerTop
+                ) {
+                    clearInterval(bulletInterval);
+                    bullet.remove();
+                    alert('Game Over!');
+                    gameStarted = false;
+                }
+
+                if (
+                    bulletTop > window.innerHeight ||
+                    bulletLeft > window.innerWidth ||
+                    bulletRight < 0 ||
+                    bulletBottom < 0
+                ) {
+                    clearInterval(bulletInterval);
+                    bullet.remove();
+                }
+            }
+
+            const bulletInterval = setInterval(moveBullet, 20);
+        }
+
+        document.addEventListener('keydown', (event) => {
+            if (event.key === ' ') {
+                if (!gameStarted) {
+                    gameStarted = true;
+                    setInterval(createBullet, 1500);
+                }
+            }
+            if (event.key === 'ArrowLeft') {
+                isMovingLeft = true;
+            }
+            if (event.key === 'ArrowRight') {
+                isMovingRight = true;
+            }
+            if (event.key === 'ArrowUp') {
+                isMovingUp = true;
+            }
+            if (event.key === 'ArrowDown') {
+                isMovingDown = true;
+            }
+        });
+
+        document.addEventListener('keyup', (event) => {
+            if (event.key === 'ArrowLeft') {
+                isMovingLeft = false;
+            }
+            if (event.key === 'ArrowRight') {
+                isMovingRight = false;
+            }
+            if (event.key === 'ArrowUp') {
+                isMovingUp = false;
+            }
+            if (event.key === 'ArrowDown') {
+                isMovingDown = false;
+            }
+        });
+
+        setInterval(movePlayer, 20);
+    </script>
+</body>
+</html>
